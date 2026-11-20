@@ -57,10 +57,12 @@ input,select{font:inherit;color:inherit}
 .pins.merge .pin{border-color:var(--acc);background:#2a1a12;box-shadow:0 0 40px rgba(255,91,20,.55),inset 0 0 18px rgba(255,91,20,.35)}
 .pins.merge .pin::before{transform:translateX(-50%) scaleX(0)}
 .pins.merge .pin .dg{opacity:0;transform:scale(.5)}
-.pins.merge .pin:nth-child(1){transform:translateX(98px) rotate(-6deg)}
-.pins.merge .pin:nth-child(2){transform:translateX(30px) rotate(-2deg)}
-.pins.merge .pin:nth-child(3){transform:translateX(-34px) rotate(3deg)}
-.pins.merge .pin:nth-child(4){transform:translateX(-102px) rotate(7deg)}
+.pins.merge .pin{transform:translateX(var(--tx)) rotate(var(--rot))}
+.pins.six{gap:8px}.pins.six .pin{width:46px;height:56px;border-radius:14px;font-size:21px}
+#nameBox{margin:14px 0 8px}
+#nameBox input{width:100%;height:58px;border-radius:18px;border:1.5px solid #2c2c31;background:#1d1d20;color:#fff;font:600 18px var(--font);padding:0 18px;outline:none;transition:border-color .2s,box-shadow .2s}
+#nameBox input:focus{border-color:var(--acc);box-shadow:0 0 0 4px rgba(255,91,20,.12)}
+#nameBox button{width:100%;height:56px;border-radius:18px;background:var(--acc);color:#fff;font-weight:700;font-size:16px;margin-top:10px;box-shadow:0 8px 22px rgba(255,91,20,.35)}
 .pins.fade .pin{opacity:0}
 .okbox{position:absolute;left:50%;top:50%;width:66px;height:70px;margin:-35px 0 0 -33px;border-radius:18px;border:1.5px solid var(--acc);background:#2a1a12;display:grid;place-items:center;opacity:0;transform:scale(.85);transition:opacity .35s,transform .45s cubic-bezier(.2,1.4,.4,1);box-shadow:0 0 50px rgba(255,91,20,.6),0 0 120px rgba(255,91,20,.25),inset 0 0 20px rgba(255,91,20,.35)}
 .okbox.on{opacity:1;transform:scale(1)}
@@ -251,9 +253,10 @@ html[data-theme=dark] .tsw .moon{opacity:1;transform:none}
     <div class="lk-title" id="lkTitle">Yuklanmoqda…</div>
     <div class="lk-sub" id="lkSub">&nbsp;</div>
     <div class="pins-wrap">
-      <div class="pins" id="pins"><div class="pin"></div><div class="pin"></div><div class="pin"></div><div class="pin"></div></div>
+      <div class="pins" id="pins"></div>
       <div class="okbox" id="okbox"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
     </div>
+    <div id="nameBox" class="hidden"><input id="nameIn" maxlength="24" placeholder="Ismingiz (masalan: Ali)" autocomplete="name"><button id="nameGo">Davom etish</button></div>
     <div class="pad off" id="pad"></div>
     <div class="lk-foot" id="lkFoot"></div>
     <div class="lk-credit">✦ <b>Javohir</b> tomonidan yasalgan</div>
@@ -289,6 +292,7 @@ html[data-theme=dark] .tsw .moon{opacity:1;transform:none}
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="demo-fb.js"></script>
 <script>
 (function(){
 "use strict";
@@ -326,6 +330,7 @@ const IC={
  inn:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6M5 20h14"/></svg>',
  out:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6 10l6-6 6 6M5 20h14"/></svg>',
  cal:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>',
+ user:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>',
  tag:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg>',
  x:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
  edit:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
@@ -337,66 +342,62 @@ const IC={
  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 001-1V6a1 1 0 00-1-1zM12 9l6 6M18 9l-6 6"/></svg>'
 };
 
-/* ================= storage ================= */
-let products=[],txs=[],db=null,user=null,uidUser=null,useDb=false;
-const LS_DATA="demo_data_v1",LS_PIN="demo_pin_v1",LS_TRY="demo_try_v1";
+/* ================= storage (Firebase — shared by every phone) ================= */
+const FB_CONFIG={apiKey:"AIzaSyD1K9oMcgNCsfpgO3p7w2SS8m8NP6zsJeA",authDomain:"ombor-hisobi-ce854.firebaseapp.com",projectId:"ombor-hisobi-ce854",storageBucket:"ombor-hisobi-ce854.firebasestorage.app",messagingSenderId:"616474638436",appId:"1:616474638436:web:0f8db522b8952213e94771"};
+let products=[],txs=[],fdb=null,fauth=null,me=null,pub=null,subs=[],gotP=false,gotT=false,fromCache=true;
+const LS_DATA="demo_old_v1",LS_TRY="demo_try_v1",LS_ME="demo_me_v3",LS_UP="demo_uploaded_v3";
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
-function loadLocal(){const d=lsGet(LS_DATA,{});products=d.products||[];txs=d.txs||[];migrate();saveLocal()}
-function saveLocal(){lsSet(LS_DATA,{products,txs})}
-function migrate(){ /* v2.1/2.2 etiketka stored "1 kg = N dona" with dona as base; v2.3 uses kg base and "1 dona = X kg" */
-  const ch={p:[],t:[]};
-  for(const p of products){if(p.kind==="etiketka"&&p.kgDona>0&&!(p.v>=2)){const k=p.kgDona;
-    for(const t of txs)if(t.pid===p.id){t.base=t.base/k;ch.t.push(t)}
-    p.donaKg=Math.round(1/k*1e6)/1e6;delete p.kgDona;p.v=2;ch.p.push(p)}}
-  return ch;
+const myName=()=>(lsGet(LS_ME,{}).name||"");
+/* old (v2.x) on-phone data, offered for upload */
+function oldLocal(){const d=lsGet(LS_DATA,{});const P=d.products||[],T=d.txs||[];
+  for(const p of P){if(p.kind==="etiketka"&&p.kgDona>0&&!(p.v>=2)){const k=p.kgDona;for(const t of T)if(t.pid===p.id)t.base=t.base/k;p.donaKg=Math.round(1/k*1e6)/1e6;delete p.kgDona;p.v=2}}
+  return {P,T}}
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej({code:"timeout"}),ms))]);
+const D=(c,id)=>FB.doc(fdb,c,id);
+function clean(o){const r={};for(const k in o)if(o[k]!==undefined)r[k]=o[k];return r}
+
+async function fbInit(){
+  if(fdb)return;
+  if(!window.FB)throw {code:"nosdk"};
+  const app=FB.initializeApp(FB_CONFIG);
+  try{fdb=FB.initializeFirestore(app,{localCache:FB.persistentLocalCache({tabManager:FB.persistentSingleTabManager()})})}
+  catch(e){fdb=FB.initializeFirestore(app,{localCache:FB.memoryLocalCache()})}
+  fauth=FB.getAuth(app);
 }
-async function runMigration(){const ch=migrate();if(!ch.p.length)return;saveLocal();for(const t of ch.t)await dbSet("tx",t.id,t);for(const p of ch.p)await dbSet("products",p.id,p)}
-function pinRef(){return db&&uidUser?db.collection("data/users/"+uidUser).doc("pin"):null}
-
-async function getPin(){
-  if(pinRef()){try{const s=await pinRef().get();if(s.exists)return s.data();const loc=lsGet(LS_PIN,null);return loc}catch(e){}}
-  return lsGet(LS_PIN,null);
+async function ensureAuth(){
+  const u=await new Promise(res=>{const off=FB.onAuthStateChanged(fauth,x=>{off();res(x)})});
+  if(u)return u;
+  const c=await withTimeout(FB.signInAnonymously(fauth),15000);return c.user;
 }
-async function setPin(rec){
-  lsSet(LS_PIN,rec);
-  if(pinRef()){try{await pinRef().set(rec)}catch(e){console.warn(e)}}
+async function loadPublic(){
+  try{const s=await withTimeout(FB.getDocFromServer(D("config","public")),12000);return s.exists()?s.data():null}
+  catch(e){const s=await FB.getDoc(D("config","public"));if(s.exists())return s.data();throw e}
 }
-async function clearPin(){lsDel(LS_PIN);if(pinRef()){try{await pinRef().delete()}catch(e){}}}
+const isDenied=e=>e&&(e.code==="permission-denied"||String(e.message||"").includes("permission"));
+function dbErr(e){console.warn(e);if(isDenied(e)){kicked();return}toast("Saqlanmadi: internetni tekshiring")}
 
-async function dbSet(col,id,obj){if(!useDb)return;try{await db.collection(col).doc(id).set(obj)}catch(e){dbErr(e)}}
-async function dbDel(col,id){if(!useDb)return;try{await db.collection(col).doc(id).delete()}catch(e){dbErr(e)}}
-function dbErr(e){console.warn(e);toast(e&&e.code==="quota_exceeded"?"Joy tugadi — eski yozuvlarni o'chiring":"Bulutga saqlanmadi, qayta urinib ko'ring")}
-
-async function saveProduct(p){const i=products.findIndex(x=>x.id===p.id);if(i>=0)products[i]=p;else products.push(p);saveLocal();render();await dbSet("products",p.id,p)}
-async function deleteProduct(id){const rel=txs.filter(t=>t.pid===id);products=products.filter(p=>p.id!==id);txs=txs.filter(t=>t.pid!==id);saveLocal();render();await dbDel("products",id);for(const t of rel)await dbDel("tx",t.id)}
-async function saveTx(t){const i=txs.findIndex(x=>x.id===t.id);if(i>=0)txs[i]=t;else txs.push(t);saveLocal();render();await dbSet("tx",t.id,t)}
-async function deleteTx(id){txs=txs.filter(t=>t.id!==id);saveLocal();render();await dbDel("tx",id)}
-async function wipeAll(){const P=products.slice(),T=txs.slice();products=[];txs=[];saveLocal();for(const t of T)await dbDel("tx",t.id);for(const p of P)await dbDel("products",p.id)}
-
-async function initStore(){
-  loadLocal();
-  if(!(window.claude&&window.claude.use))return;           // APK / offline: local only
-  const withTimeout=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
-  try{db=await withTimeout(window.claude.use("db"),6000)}catch(e){db=null}
-  if(!db)return;
-  try{user=await withTimeout(window.claude.use("user"),4000);uidUser=user?await user.id():null}catch(e){uidUser=null}
-  let gp=false,gt=false;
-  const ready=()=>{if(gp&&gt&&!useDb){useDb=true;runMigration();saveLocal();render()}};
-  db.collection("products").onSnapshot(s=>{products=s.docs.map(d=>({...d.data(),id:d.id}));if(!s.metadata.fromCache)gp=true;ready();saveLocal();render()},()=>{});
-  db.collection("tx").onSnapshot(s=>{txs=s.docs.map(d=>({...d.data(),id:d.id}));if(!s.metadata.fromCache)gt=true;ready();saveLocal();render()},()=>{});
+function subscribe(){
+  unsubscribe();gotP=gotT=false;
+  const onErr=e=>{console.warn(e);if(isDenied(e))kicked()};
+  subs.push(FB.onSnapshot(FB.collection(fdb,"products"),{includeMetadataChanges:true},s=>{products=s.docs.map(d=>({...d.data(),id:d.id}));gotP=true;fromCache=s.metadata.fromCache;render()},onErr));
+  subs.push(FB.onSnapshot(FB.collection(fdb,"tx"),{includeMetadataChanges:true},s=>{txs=s.docs.map(d=>({...d.data(),id:d.id}));gotT=true;fromCache=s.metadata.fromCache;render()},onErr));
+}
+function unsubscribe(){subs.forEach(f=>{try{f()}catch(e){}});subs=[]}
+function kicked(){ /* PIN was changed by the boss, or this phone lost access */
+  if(!$("#lock").classList.contains("gone"))return;
+  unsubscribe();const m=lsGet(LS_ME,{});delete m.code;lsSet(LS_ME,m);
+  showLock("login");lkText("Parol o'zgargan","Boshliq parolni yangilagan. Yangi parolni kiriting.",true);
 }
 
-function seedDemo(){
-  if(lsGet("demo_seeded",false))return;lsSet("demo_seeded",true);if(products.length)return;
-  const P=[{id:"d1",name:"Karobka 2 kg",kind:"karobka",blok:10,pachka:50,pachkaIn:"blok"},{id:"d2",name:"Karobka 1 kg",kind:"karobka",blok:20,pachka:0,pachkaIn:"blok"},{id:"d3",name:"Etiketka shokolad",kind:"etiketka",donaKg:16,v:2}];
-  const T=[];let n=0;const add=(pid,type,qty,unit,off,note)=>{const p=P.find(x=>x.id===pid);const f=factors(p);T.push({id:"t"+(n++),pid,type,qty,unit,base:qty*f[unit],date:today(off),note:note||"",at:Date.now()-(10-off)*3600e3-n*60e3})};
-  add("d1","in",10,"pachka",-5,"Yetkazib beruvchi");add("d1","out",3,"pachka",-4,"1-smena");add("d1","out",25,"blok",-2);add("d1","in",10,"pachka",-1);add("d1","out",4,"pachka",0,"2-smena");add("d1","out",5,"pachka",1,"Reja");
-  add("d2","in",30,"blok",-3);add("d2","out",120,"dona",-1);add("d2","out",5,"blok",0);
-  add("d3","in",160,"kg",-4,"10 rulon");add("d3","out",3,"dona",-2);add("d3","out",40,"kg",0);
-  products=P;txs=T;saveLocal();
-}
+function saveProduct(p){p=clean(p);const i=products.findIndex(x=>x.id===p.id);if(i>=0)products[i]=p;else products.push(p);render();FB.setDoc(D("products",p.id),p).catch(dbErr)}
+function deleteProduct(id){const rel=txs.filter(t=>t.pid===id);products=products.filter(p=>p.id!==id);txs=txs.filter(t=>t.pid!==id);render();
+  FB.deleteDoc(D("products",id)).catch(dbErr);for(const t of rel)FB.deleteDoc(D("tx",t.id)).catch(dbErr)}
+function saveTx(t){t=clean({...t,by:t.by||myName(),byUid:t.byUid||(fauth&&fauth.currentUser?fauth.currentUser.uid:"")});const i=txs.findIndex(x=>x.id===t.id);if(i>=0)txs[i]=t;else txs.push(t);render();FB.setDoc(D("tx",t.id),t).catch(dbErr)}
+function deleteTx(id){txs=txs.filter(t=>t.id!==id);render();FB.deleteDoc(D("tx",id)).catch(dbErr)}
+async function uploadOld(){const {P,T}=oldLocal();for(const p of P)saveProduct({...p,kind:p.kind||"karobka"});for(const t of T)saveTx({...t,by:t.by||myName()});lsSet(LS_UP,true);toast(`${P.length} ta mahsulot va ${T.length} ta yozuv yuklandi`)}
+
 /* ================= domain ================= */
 const isEt=p=>!!p&&p.kind==="etiketka";
 function factors(p){if(isEt(p))return p.donaKg>0?{kg:1,dona:p.donaKg}:{kg:1};const f={dona:1};if(p&&p.blok>0)f.blok=p.blok;if(p&&p.pachka>0)f.pachka=p.pachka;return f}
@@ -436,6 +437,7 @@ function render(){
 function noProducts(){return `<div class="card empty fadein" style="margin-top:6px"><div class="em" style="background:var(--soft)">${IC.box}</div><b style="color:var(--ink);font-size:17px">Hali mahsulot yo'q</b><br>Avval mahsulot qo'shing — masalan <b style="color:var(--ink)">Karobka</b> — va 1 blok / 1 pachkada nechta dona borligini yozing.<div style="margin-top:18px"><button class="btn acc" data-act="newp">+ Mahsulot qo'shish</button></div></div>`}
 
 function vHome(){
+  if(!gotP||!gotT)return `<div class="card empty" style="margin-top:20px">Ombor yuklanmoqda…</div>`;
   if(!products.length)return `<h2 class="sec">Xush kelibsiz</h2>`+noProducts();
   const t=today();
   if(!prodById(selPid))selPid=sortP()[0].id;
@@ -504,7 +506,7 @@ function txRow(t){
   const p=prodById(t.pid),isIn=t.type==="in",fut=t.date>today();
   return `<div class="it"><div class="ib" style="background:${isIn?"var(--inbg)":"var(--outbg)"}">${isIn?IC.inn:IC.out}</div>
     <div class="mid" data-act="edit" data-id="${t.id}"><div class="nm">${esc(p?p.name:"(o'chirilgan)")}</div>
-      <div class="tg"><span>${isIn?"Kirim":"Chiqim"}</span>${p&&t.unit!==baseUnit(p)?`<span>≈ ${num(t.base)} ${baseUnit(p)}</span>`:""}${fut?`<span style="background:var(--planbg);color:var(--plan)">reja</span>`:""}${t.note?`<span>${esc(t.note)}</span>`:""}</div></div>
+      <div class="tg"><span>${isIn?"Kirim":"Chiqim"}</span>${p&&t.unit!==baseUnit(p)?`<span>≈ ${num(t.base)} ${baseUnit(p)}</span>`:""}${fut?`<span style="background:var(--planbg);color:var(--plan)">reja</span>`:""}${t.by?`<span>👤 ${esc(t.by)}</span>`:""}${t.note?`<span>${esc(t.note)}</span>`:""}</div></div>
     <div class="tm">${hhmm(t.at)}</div>
     <div class="amt"><b style="color:${isIn?"var(--in)":"var(--out)"}">${isIn?"+":"−"}${num(t.qty)}</b><span>${t.unit}</span></div>
     <button class="x" data-act="deltx" data-id="${t.id}" aria-label="O'chirish">${IC.x}</button></div>`;
@@ -683,62 +685,102 @@ function confirmSheet(title,text,yes,onYes){
   $("#yes").onclick=()=>{closeSheet();onYes()};
 }
 function menuSheet(){
+  const {P,T}=oldLocal(),hasOld=(P.length||T.length)&&!lsGet(LS_UP,false),online=navigator.onLine!==false&&!fromCache;
   openSheet(`<h3>Sozlamalar</h3><div class="menu">
-  <button class="mi" data-act="chpin"><div class="ib sq" style="background:var(--soft)">${IC.key}</div><span>Parolni o'zgartirish<small>Joriy parolni kiritib, yangisini o'rnating</small></span></button>
+  <button class="mi" data-act="rename"><div class="ib sq" style="background:var(--soft)">${IC.user}</div><span>Ismingiz: ${esc(myName()||"—")}<small>Yozuvlar yonida shu ism ko'rinadi · o'zgartirish</small></span></button>
+  <button class="mi" data-act="chpin"><div class="ib sq" style="background:var(--soft)">${IC.key}</div><span>Ombor parolini o'zgartirish<small>Faqat boshliq — 6 xonali boshliq paroli kerak</small></span></button>
   <button class="mi" data-act="lock"><div class="ib sq" style="background:var(--soft)">${IC.lock}</div><span>Hozir qulflash<small>Ilova 1 daqiqa yopiq tursa o'zi qulflanadi</small></span></button>
-  <div class="mi" style="cursor:default"><div class="ib sq" style="background:var(--soft)">${IC.cloud}</div><span>Saqlash joyi<small>${useDb?"Akkauntingizda — boshqa qurilmada ham ko'rinadi":"Shu telefonda (ilovani o'chirsangiz ma'lumot ham o'chadi)"}</small></span></div>
-  <button class="mi" data-act="wipe" style="color:var(--out)"><div class="ib sq" style="background:var(--outbg)">${IC.trash}</div><span>Barcha ma'lumotni o'chirish<small style="color:#c77">Mahsulotlar va tarix butunlay o'chadi</small></span></button>
-  </div><div style="text-align:center;color:var(--mute);font-size:12px;margin-top:16px">Ombor hisobi · DEMO · <b>Javohir</b> tomonidan yasalgan<br>Demo ma\'lumotlar faqat shu telefonda saqlanadi</div>`);
+  <div class="mi" style="cursor:default"><div class="ib sq" style="background:var(--soft)">${IC.cloud}</div><span>Umumiy baza · ${online?'<b style="color:var(--plan)">demo</b>':'<b style="color:var(--warnfg)">internet yo\'q</b>'}<small>${online?"Haqiqiy ilovada hamma telefonlar bitta omborni ko'radi":"Yozuvlar telefonda turadi va internet qaytganda yuboriladi"}</small></span></div>
+  ${hasOld?`<button class="mi" data-act="upold"><div class="ib sq" style="background:var(--planbg);color:var(--plan)">${IC.cloud}</div><span>Eski ma'lumotlarni yuklash<small>Shu telefondagi ${P.length} ta mahsulot va ${T.length} ta yozuvni umumiy bazaga qo'shish</small></span></button>`:""}
+  </div><div style="text-align:center;color:var(--mute);font-size:12px;margin-top:16px">Ombor hisobi · DEMO · <b>Javohir</b> tomonidan yasalgan<br>Demo faqat shu telefonda ishlaydi — haqiqiy omborga ulanmaydi</div>`);
 }
 
 /* ================= LOCK ================= */
-const lock={mode:"login",buf:"",first:"",busy:false,rec:null};
+const lock={mode:"loading",buf:"",first:"",len:4,busy:false,flow:null,tmp:{}};
 function buildPad(){
   const k=[["1",""],["2","ABC"],["3","DEF"],["4","GHI"],["5","JKL"],["6","MNO"],["7","PQRS"],["8","TUV"],["9","WXYZ"],["",""],["0",""],["⌫",""]];
   $("#pad").innerHTML=k.map(([d,s])=>d===""?`<div class="key ghost"></div>`:d==="⌫"?`<button class="key ghost" data-k="del" aria-label="O'chirish">${IC.back}</button>`:`<button class="key" data-k="${d}">${d}${s?`<small>${s}</small>`:""}</button>`).join("");
+}
+function buildPins(n){
+  lock.len=n;const ps=$("#pins");ps.classList.toggle("six",n===6);
+  const w=n===6?46:58,g=n===6?8:12;
+  ps.innerHTML=Array.from({length:n},(_,i)=>{const off=(i-(n-1)/2)*(w+g);const tx=-off+(i-(n-1)/2)*3;const rot=((i-(n-1)/2)*2.6).toFixed(1);return `<div class="pin" style="--tx:${tx}px;--rot:${rot}deg"></div>`}).join("");
 }
 function lkText(title,sub,err){
   const t=$("#lkTitle");if(t.textContent!==title){t.style.opacity=0;setTimeout(()=>{t.textContent=title;t.style.opacity=1},150)}
   const s=$("#lkSub");s.innerHTML=sub;s.classList.toggle("err",!!err);
 }
+const SECRET_MODES=["login","bossOld","s3","s4"];
 function drawPins(){
-  const ps=document.querySelectorAll(".pin");
-  ps.forEach((p,i)=>{const f=i<lock.buf.length;p.classList.toggle("f",f);p.classList.toggle("a",i===lock.buf.length&&!lock.busy);
-    p.innerHTML=f?`<span class="dg">${lock.mode==="login"||lock.mode==="old"?'<i class="dot" style="display:block"></i>':lock.buf[i]}</span>`:""});
+  document.querySelectorAll(".pin").forEach((p,i)=>{const f=i<lock.buf.length;p.classList.toggle("f",f);p.classList.toggle("a",i===lock.buf.length&&!lock.busy);
+    p.innerHTML=f?`<span class="dg">${SECRET_MODES.includes(lock.mode)?'<i class="dot" style="display:block"></i>':lock.buf[i]}</span>`:""});
 }
 function lockedUntil(){const t=lsGet(LS_TRY,{n:0,until:0});return t.until>Date.now()?t.until:0}
+function showPad(on){$(".pins-wrap").classList.toggle("hidden",!on);$("#pad").classList.toggle("hidden",!on);$("#nameBox").classList.toggle("hidden",on)}
 function setMode(m){
-  lock.mode=m;lock.buf="";
-  const foot=$("#lkFoot");
-  if(m==="setup"){if(lock.changing){lkText("Yangi parol","Yangi 4 xonali parolni kiriting.");foot.innerHTML=`<button data-lk="cancel">Bekor qilish</button>`}else{lkText("Parol o'rnating","Ilovani himoyalash uchun 4 xonali parol o'ylab toping.<br>Keyingi safar shu parol bilan kirasiz.");foot.innerHTML=""}}
-  else if(m==="confirm"){lkText("Parolni tasdiqlang","Xuddi shu 4 raqamni yana bir bor kiriting.");foot.innerHTML=`<button data-lk="restart">Boshqatdan</button>`}
-  else if(m==="login"){lkText("Xush kelibsiz","Kirish uchun 4 xonali parolingizni kiriting.");foot.innerHTML=`Parolni unutdingizmi? <button data-lk="forgot">Tiklash</button>`}
-  else if(m==="old"){lkText("Joriy parol","Parolni o'zgartirish uchun avval joriy parolni kiriting.");foot.innerHTML=`<button data-lk="cancel">Bekor qilish</button>`}
+  lock.mode=m;lock.buf="";const foot=$("#lkFoot");foot.innerHTML="";
+  $("#pad").classList.remove("off");showPad(true);
+  if(m==="loading"){buildPins(4);lkText("Ulanmoqda…","Umumiy omborga ulanyapmiz");$("#pad").classList.add("off")}
+  else if(m==="offline"){buildPins(4);lkText("Internet yo'q","Birinchi kirish uchun internet kerak. Ulanib, qayta urinib ko'ring.",true);$("#pad").classList.add("off");foot.innerHTML=`<button data-lk="retry">Qayta urinish</button>`}
+  else if(m==="name"){showPad(false);lkText(lock.flow==="setup"?"Omborni sozlash":"Xush kelibsiz",lock.flow==="setup"?"Siz birinchi kiruvchisiz — omborni siz sozlaysiz (boshliq).<br>Avval ismingizni yozing.":"Ismingizni yozing — yozuvlar yonida kim kiritgani ko'rinadi.");setTimeout(()=>$("#nameIn").focus(),300)}
+  else if(m==="s1"){buildPins(4);lkText("Ombor paroli","Hamma ishchilar shu 4 xonali parol bilan kiradi. O'ylab toping.")}
+  else if(m==="s2"){buildPins(4);lkText("Parolni tasdiqlang","Ombor parolini yana bir bor kiriting.");foot.innerHTML=`<button data-lk="restart">Boshqatdan</button>`}
+  else if(m==="s3"){buildPins(6);lkText("Boshliq paroli","Faqat sizga ma'lum 6 xonali parol. Ombor parolini o'zgartirish uchun kerak bo'ladi.")}
+  else if(m==="s4"){buildPins(6);lkText("Boshliq parolini tasdiqlang","6 raqamni yana bir bor kiriting.");foot.innerHTML=`<button data-lk="restart">Boshqatdan</button>`}
+  else if(m==="login"){buildPins(4);lkText(myName()?"Xush kelibsiz, "+esc(myName()):"Xush kelibsiz","Ombor parolini kiriting.");foot.innerHTML=`Parolni unutdingizmi? <button data-lk="forgot">Yordam</button>`}
+  else if(m==="bossOld"){buildPins(6);lkText("Boshliq paroli","Ombor parolini o'zgartirish uchun 6 xonali boshliq parolini kiriting.");foot.innerHTML=`<button data-lk="cancel">Bekor qilish</button>`}
+  else if(m==="c1"){buildPins(4);lkText("Yangi ombor paroli","Ishchilar endi shu yangi 4 xonali parol bilan kiradi.");foot.innerHTML=`<button data-lk="cancel">Bekor qilish</button>`}
+  else if(m==="c2"){buildPins(4);lkText("Yangi parolni tasdiqlang","Yangi parolni yana bir bor kiriting.");foot.innerHTML=`<button data-lk="cancel">Bekor qilish</button>`}
   drawPins();
 }
+function wrongTry(){
+  const t=lsGet(LS_TRY,{n:0,until:0});t.n++;let msg="Noto'g'ri parol. Qayta urinib ko'ring.";
+  if(t.n>=5){t.until=Date.now()+30000*Math.pow(2,Math.min(t.n-5,5));t.n=4;msg="Juda ko'p xato. "+Math.round((t.until-Date.now())/1000)+" soniya kuting."}
+  lsSet(LS_TRY,t);pinError(msg);
+}
+function busyText(t){lock.prevTitle=$("#lkTitle").textContent;lkText(t,"&nbsp;");$("#pad").classList.add("off")}
 async function pinDone(){
-  const pin=lock.buf;
-  if(lock.mode==="setup"){lock.first=pin;setTimeout(()=>setMode("confirm"),180);return}
-  if(lock.mode==="confirm"){
-    if(pin!==lock.first){pinError("Parollar mos kelmadi. Qaytadan o'rnating.");setTimeout(()=>setMode("setup"),900);return}
-    const salt=uid()+uid();const rec={salt,hash:hashPin(pin,salt),v:1};lock.rec=rec;await setPin(rec);
-    success(lock.changing?"Parol yangilandi":"Parol o'rnatildi");return}
-  if(lock.mode==="login"||lock.mode==="old"){
+  const pin=lock.buf,m=lock.mode;
+  try{
+  if(m==="s1"){lock.tmp.code=pin;setTimeout(()=>setMode("s2"),180);return}
+  if(m==="s2"){if(pin!==lock.tmp.code){pinError("Mos kelmadi. Qaytadan o'ylab toping.");setTimeout(()=>setMode("s1"),900);return}setTimeout(()=>setMode("s3"),180);return}
+  if(m==="s3"){lock.tmp.boss=pin;setTimeout(()=>setMode("s4"),180);return}
+  if(m==="s4"){
+    if(pin!==lock.tmp.boss){pinError("Mos kelmadi. Qaytadan kiriting.");setTimeout(()=>setMode("s3"),900);return}
+    busyText("Ombor yaratilmoqda…");
+    const salt=uid()+uid(),uidv=fauth.currentUser.uid,code=hashPin(lock.tmp.code,salt),adminCode=hashPin(lock.tmp.boss,salt+"#boss");
+    await withTimeout(FB.setDoc(D("config","public"),{salt,setup:true,createdAt:FB.serverTimestamp(),by:myName()}),15000);
+    await withTimeout(FB.setDoc(D("config","access"),{code,adminCode}),15000);
+    await withTimeout(FB.setDoc(D("members",uidv),{code,name:myName(),boss:true,at:FB.serverTimestamp()}),15000);
+    pub={salt};const meRec=lsGet(LS_ME,{});meRec.code=code;meRec.boss=true;lsSet(LS_ME,meRec);lock.tmp={};
+    success("Ombor tayyor!");return}
+  if(m==="login"){
     const until=lockedUntil();if(until){pinError("Juda ko'p urinish. "+Math.ceil((until-Date.now())/1000)+" soniya kuting.");return}
-    if(lock.rec&&hashPin(pin,lock.rec.salt)===lock.rec.hash){
-      lsSet(LS_TRY,{n:0,until:0});
-      if(lock.mode==="old"){lock.changing=true;setTimeout(()=>setMode("setup"),150);return}
-      success("Muvaffaqiyatli kirildi");
-    }else{
-      const t=lsGet(LS_TRY,{n:0,until:0});t.n++;let msg="Noto'g'ri parol. Qayta urinib ko'ring.";
-      if(t.n>=5){t.until=Date.now()+30000*Math.pow(2,Math.min(t.n-5,5));t.n=4;msg="Juda ko'p xato. "+Math.round((t.until-Date.now())/1000)+" soniya kuting."}
-      lsSet(LS_TRY,t);pinError(msg);
+    const code=hashPin(pin,pub.salt);busyText("Tekshirilmoqda…");
+    try{
+      await withTimeout(FB.setDoc(D("members",fauth.currentUser.uid),{code,name:myName(),at:FB.serverTimestamp()}),9000);
+    }catch(e){
+      if(e.code==="timeout"&&lsGet(LS_ME,{}).code===code){ /* offline but this phone already knew this PIN */ }
+      else{ $("#pad").classList.remove("off"); if(isDenied(e))return wrongTry(); if(e.code==="timeout"){pinError("Internet sekin yoki yo'q. Qayta urinib ko'ring.");return} throw e }
     }
-  }
+    lsSet(LS_TRY,{n:0,until:0});const r=lsGet(LS_ME,{});r.code=code;lsSet(LS_ME,r);
+    success("Muvaffaqiyatli kirildi");return}
+  if(m==="bossOld"){lock.tmp.boss=pin;setTimeout(()=>setMode("c1"),180);return}
+  if(m==="c1"){lock.tmp.code=pin;setTimeout(()=>setMode("c2"),180);return}
+  if(m==="c2"){
+    if(pin!==lock.tmp.code){pinError("Mos kelmadi.");setTimeout(()=>setMode("c1"),900);return}
+    busyText("Saqlanmoqda…");
+    const code=hashPin(lock.tmp.code,pub.salt),adminCode=hashPin(lock.tmp.boss,pub.salt+"#boss");
+    try{await withTimeout(FB.setDoc(D("config","access"),{code,adminCode}),12000)}
+    catch(e){$("#pad").classList.remove("off");lock.tmp={};if(isDenied(e)){pinError("Boshliq paroli noto'g'ri.");setTimeout(()=>setMode("bossOld"),1000);return}pinError("Internet yo'q — saqlanmadi.");return}
+    await withTimeout(FB.setDoc(D("members",fauth.currentUser.uid),{code,name:myName(),boss:true,at:FB.serverTimestamp()}),12000).catch(()=>{});
+    const r=lsGet(LS_ME,{});r.code=code;r.boss=true;lsSet(LS_ME,r);lock.tmp={};lock.toastAfter="Yangi ombor paroli o'rnatildi ✓";
+    success("Parol yangilandi");return}
+  }catch(e){console.warn(e);$("#pad").classList.remove("off");pinError(e&&e.code==="timeout"?"Internet sekin yoki yo'q. Qayta urinib ko'ring.":"Xatolik: "+(e&&e.code||"noma'lum"))}
 }
 function pinError(msg){
   vib([60,40,60]);const ps=$("#pins");ps.classList.remove("err");void ps.offsetWidth;ps.classList.add("err");
-  lkText($("#lkTitle").textContent,msg,true);
+  lkText(lock.prevTitle||$("#lkTitle").textContent,msg,true);lock.prevTitle=null;
   setTimeout(()=>{ps.classList.remove("err");lock.buf="";drawPins()},500);
 }
 function success(title){
@@ -750,43 +792,55 @@ function success(title){
 }
 function unlock(){
   $("#lock").classList.add("gone");$("#app").classList.add("show");$("#nav").classList.remove("hidden");
-  lock.changing=false;render();
+  if(!subs.length)subscribe();render();
+  {const h=new Date().getHours();$("#hello").textContent=(h<5?"Xayrli tun":h<11?"Xayrli tong":h<18?"Xayrli kun":"Xayrli kech")+(myName()?", "+myName():"")+" 👋"}
   if(lock.toastAfter){toast(lock.toastAfter);lock.toastAfter=null}
   setTimeout(()=>{resetLockUi()},700);
 }
 function resetLockUi(){const ps=$("#pins");ps.classList.remove("merge","fade","err");$("#okbox").classList.remove("on");$("#glow").classList.remove("on");$("#pad").classList.remove("off");lock.busy=false}
-function showLock(mode){
-  closeSheet();resetLockUi();$("#lock").classList.remove("gone");$("#nav").classList.add("hidden");setMode(mode);
-}
+function showLock(mode){closeSheet();resetLockUi();$("#lock").classList.remove("gone");$("#nav").classList.add("hidden");setMode(mode)}
 function lockKey(k){
-  if(lock.busy||$("#lock").classList.contains("gone"))return;
+  if(lock.busy||$("#lock").classList.contains("gone")||$("#pad").classList.contains("off")||$("#pad").classList.contains("hidden"))return;
   if(k==="del"){lock.buf=lock.buf.slice(0,-1);drawPins();return}
-  if(lock.buf.length>=4)return;
+  if(lock.buf.length>=lock.len)return;
   lock.buf+=k;drawPins();vib(8);
-  if(lock.buf.length===4){lock.busy=true;setTimeout(()=>{lock.busy=false;pinDone()},160)}
+  if(lock.buf.length===lock.len){lock.busy=true;setTimeout(()=>{lock.busy=false;pinDone()},160)}
 }
 $("#pad").addEventListener("click",e=>{const b=e.target.closest("[data-k]");if(b)lockKey(b.dataset.k)});
 $("#lkFoot").addEventListener("click",e=>{const b=e.target.closest("[data-lk]");if(!b)return;const a=b.dataset.lk;
-  if(a==="restart")setMode("setup");
-  else if(a==="cancel"){lock.changing=false;$("#lock").classList.add("gone");$("#nav").classList.remove("hidden")}
-  else if(a==="forgot")forgotFlow();
+  if(a==="restart")setMode(lock.mode==="s4"?"s3":"s1");
+  else if(a==="retry")boot();
+  else if(a==="cancel"){lock.tmp={};$("#lock").classList.add("gone");$("#nav").classList.remove("hidden")}
+  else if(a==="forgot"){lkText("Parolni unutdingizmi?","Ombor parolini <b style='color:#fff'>boshliqdan</b> so'rang. Boshliq uni Sozlamalar → «Ombor parolini o'zgartirish» orqali yangilashi mumkin.");$("#lkFoot").innerHTML=`<button data-lk="back">Ortga</button>`}
+  else if(a==="back")setMode("login");
 });
-function forgotFlow(){
-  const s=$("#lkSub"),f=$("#lkFoot");
-  lkText("Parolni tiklash","Xavfsizlik uchun parolni tiklashda <b style='color:#fff'>barcha ombor ma'lumotlari o'chiriladi</b>. Bu amalni ortga qaytarib bo'lmaydi.",false);
-  f.innerHTML=`<button data-lk2="no" style="margin-right:22px">Bekor</button><button data-lk2="yes" style="color:#ff6a5a">Hammasini o'chirib, tiklash</button>`;
-  f.onclick=async e=>{const b=e.target.closest("[data-lk2]");if(!b)return;f.onclick=null;
-    if(b.dataset.lk2==="yes"){await wipeAll();await clearPin();lock.rec=null;lsSet(LS_TRY,{n:0,until:0});setMode("setup");toast("Ma'lumotlar o'chirildi")}else setMode("login")};
+$("#nameGo").addEventListener("click",nameDone);
+$("#nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")nameDone()});
+function nameDone(){
+  const n=$("#nameIn").value.trim().replace(/\s+/g," ").slice(0,24);if(n.length<2){$("#nameIn").focus();lkText($("#lkTitle").textContent,"Ismingizni yozing (kamida 2 harf).",true);return}
+  const r=lsGet(LS_ME,{});r.name=n;lsSet(LS_ME,r);$("#nameIn").blur();
+  setMode(lock.flow==="setup"?"s1":"login");
 }
 document.addEventListener("keydown",e=>{
-  if(!$("#lock").classList.contains("gone")){if(/^[0-9]$/.test(e.key))lockKey(e.key);else if(e.key==="Backspace")lockKey("del");return}
+  if(!$("#lock").classList.contains("gone")){if(document.activeElement&&document.activeElement.id==="nameIn")return;if(/^[0-9]$/.test(e.key))lockKey(e.key);else if(e.key==="Backspace")lockKey("del");return}
   if(e.key==="Escape"&&sheetOpen())closeSheet();
 });
 /* auto-lock after 60s in background */
 let hiddenAt=0;
-document.addEventListener("visibilitychange",()=>{if(document.hidden)hiddenAt=Date.now();else if(hiddenAt&&Date.now()-hiddenAt>60000&&lock.rec&&$("#lock").classList.contains("gone"))showLock("login")});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)hiddenAt=Date.now();else if(hiddenAt&&Date.now()-hiddenAt>60000&&pub&&$("#lock").classList.contains("gone"))showLock("login")});
 /* Android back button hook */
 window.__back=function(){if(sheetOpen()){closeSheet();return true}if($("#lock").classList.contains("gone")&&view!=="home"){view="home";render();return true}return false};
+
+/* boot: connect → setup (first ever) or login */
+async function boot(){
+  setMode("loading");
+  try{await fbInit();await ensureAuth();pub=await loadPublic()}
+  catch(e){console.warn(e);setMode("offline");return}
+  if(!pub){lock.flow="setup";$("#nameIn").value=myName();setMode("name");return}
+  lock.flow="login";
+  if(!myName()){setMode("name");return}
+  setMode("login");
+}
 
 /* ================= theme ================= */
 const LS_THEME="demo_theme";
@@ -818,8 +872,10 @@ document.addEventListener("click",async e=>{
   if(a==="close")closeSheet();
   else if(a==="menu")menuSheet();
   else if(a==="lock")showLock("login");
-  else if(a==="chpin"){showLock("old")}
-  else if(a==="wipe"){confirmSheet("Hammasini o'chirish?","Barcha mahsulotlar va kirim/chiqim tarixi butunlay o'chadi. Parol saqlanib qoladi.","O'chirish",async()=>{await wipeAll();toast("O'chirildi")})}
+  else if(a==="chpin"){showLock("bossOld")}
+  else if(a==="upold"){closeSheet();uploadOld()}
+  else if(a==="rename"){openSheet(`<h3>Ismingiz</h3><div class="sub">Kirim/chiqim yozuvlari yonida shu ism ko'rinadi.</div><div class="lbl">Ism</div><input class="field" id="rn" value="${esc(myName())}" maxlength="24"><div class="row" style="margin-top:18px"><button class="btn" data-act="close" style="flex:1;background:var(--card)">Bekor</button><button class="btn dark" style="flex:1.4" data-act="saverename">Saqlash</button></div>`)}
+  else if(a==="saverename"){const n=$("#rn").value.trim().slice(0,24);if(n.length<2){toast("Ismni yozing");return}const r=lsGet(LS_ME,{});r.name=n;lsSet(LS_ME,r);closeSheet();toast("Saqlandi ✓");if(fauth&&fauth.currentUser&&r.code)FB.setDoc(D("members",fauth.currentUser.uid),{code:r.code,name:n,at:FB.serverTimestamp()}).catch(()=>{})}
   else if(a==="newp")productForm();
   else if(a==="newpq"){productForm();setTimeout(()=>{$("#pn").value=$("#sq").value.trim()},0)}
   else if(a==="pick"){selPid=b.dataset.pid;view="home";$("#sq").value="";renderSearch();$("#sq").blur();render();setTimeout(()=>{const h=document.querySelector(".panel");if(h)h.scrollIntoView({behavior:"smooth",block:"start"})},60)}
@@ -868,18 +924,14 @@ document.addEventListener("click",async e=>{
 });
 
 /* ================= start ================= */
-(async function start(){
+(function start(){
   buildPad();
-  await initStore();
-  lock.rec=await getPin();
-  if(lock.rec&&db&&pinRef()){ /* migrate local PIN to account if needed */ try{const s=await pinRef().get();if(!s.exists)await pinRef().set(lock.rec)}catch(e){} }
-  seedDemo();setMode(lock.rec?"login":"setup");
-  $("#pad").classList.remove("off");
   const h=new Date().getHours();
-  $("#hello").textContent=(h<5?"Xayrli tun":h<11?"Xayrli tong":h<18?"Xayrli kun":"Xayrli kech")+" 👋";
+  $("#hello").textContent=(h<5?"Xayrli tun":h<11?"Xayrli tong":h<18?"Xayrli kun":"Xayrli kech")+(myName()?", "+myName():"")+" 👋";
+  boot();
 })();
 })();
 </script>
-<script>if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
+<script>if("serviceWorker" in navigator&&location.protocol==="https:"&&!location.hostname.includes("androidplatform"))navigator.serviceWorker.register("sw.js").catch(()=>{});</script>
 </body>
 </html>
